@@ -65,7 +65,7 @@ class ServerInfo(JsonTemplate):
 class Metro(JsonTemplate):
 
     mandatory_fields = ['username', 'password', 'original_host']
-    optional_fields = ['original_port', 'metro_host', 'metro_port']
+    optional_fields = ['original_port', ]  # 'metro_host', 'metro_port'] -> These should not be accepted in the request
 
     def __init__(self, username, password, original_host, original_port=22, metro_host=None, metro_port=None):
         self.username = username
