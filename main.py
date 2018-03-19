@@ -6,9 +6,10 @@ import pexpect
 import logging
 import os
 import time
+import signal
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO if not 'METRO_DEBUG' in os.environ else logging.DEBUG)
+logger.setLevel(logging.INFO if 'METRO_DEBUG' not in os.environ else logging.DEBUG)
 
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
@@ -25,6 +26,22 @@ server_info = ServerInfo('localhost', '%s - %s' % (platform.system(), platform.p
 
 __ports_in_use = list()
 __live_metros = dict()
+
+
+def signal_handler(signum, frame):
+
+    logger.info('Metro Server received signal %s' % signum)
+    logger.info('Terminating Metro Server')
+    if __live_metros:
+        for metro in __live_metros:
+            logger.debug('Terminating tunnel for server => %s' % metro)
+            __live_metros[metro]['pexpobj'].kill(9)
+            __live_metros[metro]['pexpobj'].close(force=True)
+    logger.info('Metro Server terminated!')
+    return
+
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 @app.route('/api/v1/info', methods=['GET'])
