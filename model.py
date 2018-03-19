@@ -16,6 +16,7 @@ class JsonTemplate(object):
 
     mandatory_fields = []
     optional_fields = []
+    read_only_fields = []
 
     @classmethod
     def get_instance_from_json(cls, json_dict):
@@ -47,7 +48,7 @@ class JsonTemplate(object):
 
     def get_dict(self):
         result_dict = dict()
-        for field in (self.mandatory_fields + self.optional_fields):
+        for field in (self.mandatory_fields + self.optional_fields + self.read_only_fields):
             exec('result_dict["%s"] = self.%s' % (field, field))
         return result_dict
 
@@ -66,6 +67,7 @@ class Metro(JsonTemplate):
 
     mandatory_fields = ['username', 'password', 'original_host']
     optional_fields = ['original_port', ]  # 'metro_host', 'metro_port'] -> These should not be accepted in the request
+    read_only_fields = ['metro_host', 'metro_port']
 
     def __init__(self, username, password, original_host, original_port=22, metro_host=None, metro_port=None):
         self.username = username
