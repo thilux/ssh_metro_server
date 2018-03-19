@@ -31,9 +31,18 @@ class JsonTemplate(object):
             instance_init_vals = ''.join(instance_init_vals[:-1])
             instance_model = 'cls(%s)' % instance_init_vals
             return eval(instance_model)
+        else:
+            raise TypeError('Invalid format for type: %s' % cls.__name__)
 
     @classmethod
     def __validate_json(cls, json_str):
+        for field in cls.mandatory_fields:
+            if field not in json_str:
+                return False
+
+        for dict_key in json_str:
+            if dict_key not in (cls.mandatory_fields + cls.optional_fields):
+                return False
         return True
 
     def get_dict(self):

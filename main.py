@@ -8,15 +8,17 @@ app = Flask(__name__)
 server_info = ServerInfo('localhost', '%s - %s' % (platform.system(), platform.platform()), '127.0.0.1')
 
 
-@app.route('/metro/api/v1/info', methods=['GET'])
+@app.route('/api/v1/info', methods=['GET'])
 def get_server_info():
-    return jsonify(server_info.serialize()), 200
+    return jsonify(server_info.get_dict()), 200
 
 
-@app.route('/metro/api/v1/metro', methods=['POST'])
+@app.route('/api/v1/metro', methods=['POST'])
 def create_metro():
     if not request.json:
         abort(400)
+
+    metro = Metro.get_instance_from_json(request.json)
 
 
 if __name__ == '__main__':
