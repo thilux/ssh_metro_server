@@ -1,12 +1,14 @@
 from flask import Flask, jsonify, request, abort
-from model import ServerInfo, Metro
+from sshmetroserver.model import ServerInfo, Metro
 import platform
-import util
+import sshmetroserver.util as util
 import pexpect
 import logging
 import os
 import time
 import signal
+import argparse
+import sys
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO if 'METRO_DEBUG' not in os.environ else logging.DEBUG)
@@ -27,6 +29,11 @@ server_info = ServerInfo('localhost', '%s - %s' % (platform.system(), platform.p
 __ports_in_use = list()
 __live_metros = dict()
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--port', type=int, default=9871, help='The port number in which the server is to be started on the '
+                                                       'local machine')
+
 
 def signal_handler(signum, frame):
 
@@ -38,7 +45,7 @@ def signal_handler(signum, frame):
             __live_metros[metro]['pexpobj'].kill(9)
             __live_metros[metro]['pexpobj'].close(force=True)
     logger.info('Metro Server terminated!')
-    return
+    sys.exit(0)
 
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -99,6 +106,11 @@ def create_metro():
     return jsonify(metro.get_dict()), 201
 
 
-if __name__ == '__main__':
-    app.run(debug=True, port=9871, host='0.0.0.0')
+def main():
+    args = parser.parse_args()
+    app.run(debug=True, port=args.port, host='0.0.0.0')
     logger.info('Metro Server started!')
+
+
+if __name__ == '__main__':
+    main()

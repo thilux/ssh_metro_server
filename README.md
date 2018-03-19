@@ -31,13 +31,13 @@ $> pipenv install ssh-metro-server
 To start SSH metro server on your server machine, simply run:
 
 ```
-$> ssh-metro-server
+$> ssh_metro_server
 ```
 
 That command will start SSH metro server on its default port 9871. If you want it to run on an specific port though, just run:
 
 ```
-$> ssh-metro-server -p {PORT}
+$> ssh_metro_server -port {PORT}
 ```
 
 That way, SSH metro server will start on the port specified by {PORT} :)
