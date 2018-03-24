@@ -36,6 +36,15 @@ parser.add_argument('--port', type=int, default=9871, help='The port number in w
 
 
 def signal_handler(signum, frame):
+    """
+    A unix signal handler to handle SIGTERM and SIGINT signals received by the application in order to perform a clean
+    up and don't leave any child processes up consuming machine resources. A system exit is executed as a result of the
+    indicated signals as the assurance all threads and child processes are properly terminated.
+
+    :param signum: the unix signal identifier. See python signal documentation.
+    :param frame: See signal documentation.
+    :return:
+    """
 
     logger.info('Metro Server received signal %s' % signum)
     logger.info('Terminating Metro Server')
@@ -53,12 +62,23 @@ signal.signal(signal.SIGINT, signal_handler)
 
 @app.route('/api/v1/info', methods=['GET'])
 def get_server_info():
+    """
+    Processes the HTTP GET request to return information of the application server serving Metro requests.
+
+    :return: a JSON representation of the server info class. See sshmetroserver.model.ServerInfo for format details.
+    """
     logger.info('Into GET server info')
     return jsonify(server_info.get_dict()), 200
 
 
 @app.route('/api/v1/metro', methods=['POST'])
 def create_metro():
+    """
+    Processes the HTTP POST request to create a new metro. It either creates a new metro instance from scratch or
+    returns the information of an already created and live metro instance.
+
+    :return: a JSON representation of the metro instance. See sshmetroserver.model.Metro for format details.
+    """
     if not request.json:
         logger.error('Invalid request to POST metro')
         abort(400)
@@ -124,6 +144,11 @@ def create_ssh_tunnel_child_process(metro):
 
 
 def main():
+    """
+    The main application method.
+
+    :return: No return.
+    """
     args = parser.parse_args()
     app.run(debug=True, port=args.port, host='0.0.0.0')
     logger.info('Metro Server started!')

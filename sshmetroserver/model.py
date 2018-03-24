@@ -1,14 +1,12 @@
-from abc import abstractmethod
-
-
-class Serializable(object):
-
-    @abstractmethod
-    def serialize(self):
-        pass
 
 
 class JsonTemplate(object):
+    """
+    Super class representing a JSON representable object. It provides methods for dict to object instance transformation
+    and vice versa.
+
+    It makes use of eval and exec to generate data in a seamless way, based on the different subclass specifications.
+    """
 
     class EmptyTemplate():
         def __init__(self):
@@ -54,6 +52,9 @@ class JsonTemplate(object):
 
 
 class ServerInfo(JsonTemplate):
+    """
+    The object representation of the server information. It holds information of the Metro Server server information.
+    """
 
     mandatory_fields = ['host', 'operating_system', 'ip']
 
@@ -64,6 +65,10 @@ class ServerInfo(JsonTemplate):
 
 
 class Metro(JsonTemplate):
+    """
+    The object representation of a Metro. It holds information on the original host and port plus the server host and
+    port for clients to connect through SSH.
+    """
 
     mandatory_fields = ['username', 'password', 'original_host']
     optional_fields = ['original_port', ]  # 'metro_host', 'metro_port'] -> These should not be accepted in the request
