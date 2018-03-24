@@ -161,6 +161,7 @@ def keep_live_metros_alive():
             if not util.is_server_alive(metro.metro_host, metro.metro_port):
                 logger.info('Restarting metro for host [%s] and port [%d]' % (metro.original_host, metro.original_port))
                 create_ssh_tunnel_child_process(metro)
+        time.sleep(1)
 
 
 def main():
