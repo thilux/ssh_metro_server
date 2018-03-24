@@ -9,7 +9,7 @@ SSH metro server is the server side application that servers requests from the c
 SSH metro server uses the following frameworks/libraries for the specified purposes:
 
 * Flask: HTTP server implementation to handle requests from clients
-* Pexpdct: To handle operating system level commands to start the SSH tunnels
+* Pexpect: To handle operating system level commands to start the SSH tunnels
 
 ### Installation
 
