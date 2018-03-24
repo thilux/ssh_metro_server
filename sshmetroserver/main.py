@@ -44,7 +44,6 @@ def signal_handler(signum, frame):
 
     :param signum: the unix signal identifier. See python signal documentation.
     :param frame: See signal documentation.
-    :return:
     """
 
     logger.info('Metro Server received signal %s' % signum)
@@ -152,7 +151,6 @@ def keep_live_metros_alive():
     a metro request is always kept while the metro server is running.
 
     The scan of the live metros list is performed every 1 second.
-
     """
 
     while True:
@@ -168,8 +166,6 @@ def keep_live_metros_alive():
 def main():
     """
     The main application method.
-
-    :return: No return.
     """
     args = parser.parse_args()
     keep_alive_thread = Thread(target=keep_live_metros_alive)
