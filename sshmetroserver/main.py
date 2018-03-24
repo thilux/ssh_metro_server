@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, abort
 from sshmetroserver.model import ServerInfo, Metro
+from threading import Thread
 import platform
 import sshmetroserver.util as util
 import pexpect
@@ -87,7 +88,7 @@ def create_metro():
 
     logger.debug('Request for metro => %s' % str(metro.get_dict()))
 
-    if '%s:%d' % (metro.original_host, metro.original_port) in  __live_metros:
+    if '%s:%d' % (metro.original_host, metro.original_port) in __live_metros:
         logger.debug('Metro for host [%s] and port [%d] already exists' % (metro.original_host, metro.original_port))
         # reuse existing metro
         existing_metro = __live_metros['%s:%d' % (metro.original_host, metro.original_port)]['metro']
@@ -143,6 +144,27 @@ def create_ssh_tunnel_child_process(metro):
     __live_metros[live_metros_key]['pexpobj'] = child
 
 
+def keep_live_metros_alive():
+    """
+    This method is supposed to be run on a separate thread. It performs an evalutation throughout the list of metros
+    stored in the live_metros dictionary to preemptively restart those tunnels that are no longer accessible. Tunnels
+    can die by themselves due to policies configured for SSH in the target server, so this method is a way to make sure
+    a metro request is always kept while the metro server is running.
+
+    The scan of the live metros list is performed every 1 second.
+
+    """
+
+    while True:
+        for live_metros_key in __live_metros:
+            metro = __live_metros[live_metros_key]['metro']
+            logger.debug('Checking if tunnel for host [%s] and port [%d] is alive' % (metro.original_host,
+                                                                                      metro.original_port))
+            if not util.is_server_alive(metro.metro_host, metro.metro_port):
+                logger.info('Restarting metro for host [%s] and port [%d]' % (metro.original_host, metro.original_port))
+                create_ssh_tunnel_child_process(metro)
+
+
 def main():
     """
     The main application method.
@@ -150,6 +172,8 @@ def main():
     :return: No return.
     """
     args = parser.parse_args()
+    keep_alive_thread = Thread(target=keep_live_metros_alive)
+    keep_alive_thread.start()
     app.run(debug=True, port=args.port, host='0.0.0.0')
     logger.info('Metro Server started!')
 
