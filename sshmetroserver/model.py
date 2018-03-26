@@ -22,7 +22,7 @@ class JsonTemplate(object):
             instance_init_vals = ''
             for field in (cls.mandatory_fields + cls.optional_fields):
                 if field in json_dict:
-                    if type(json_dict[field]) == str:
+                    if type(json_dict[field]) in (str, bytes):
                         instance_init_vals += '%s="%s",' % (field, eval('json_dict["%s"]' % field))
                     else:
                         instance_init_vals += '%s=%s,' % (field, eval('json_dict["%s"]' % field))
