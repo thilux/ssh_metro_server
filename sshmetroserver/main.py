@@ -132,25 +132,30 @@ def create_ssh_tunnel_child_process(metro):
     logger.debug('Creating new metro for host [%s] and port [%s]' % (metro.original_host, metro.original_port))
     ssh_command = 'ssh -fNT %s@%s -L %s:%d:%s:%d' % (metro.username, metro.original_host, metro.metro_host,
                                                      metro.metro_port, metro.original_host, metro.original_port)
+
+    if metro.original_port != 22:
+        ssh_command += ' -p %d' % metro.original_port
+
     logger.debug('Command for starting metro SSH tunnel => %s' % ssh_command)
     child = pexpect.spawn(ssh_command)
     logger.info('SSH command response => %s' % child.before)
     index = child.expect(['Are you sure you want to continue connecting', 'password:', 'denied', 'refused', 'timeout'],
                          timeout=120)
+    logger.debug('Expect index for SSH command is %d' % index)
     if index > 1:
         # Either 'Permission Denied', 'Connection refused' or 'Connection timeout' happens
         raise IOError('Error while establishing SSH connection to %s:%d' % (metro.original_host, metro.original_port))
     if index == 0:
-        logger.info('SSH command response => %s' % child.before)
+        logger.info('SSH command response(1) => %s' % child.before)
         child.sendline('yes')
-        logger.info('SSH command response => %s' % child.before)
+        logger.info('SSH command response(2) => %s' % child.before)
         child.expect('password:')
     time.sleep(0.1)
     child.sendline(metro.password)
     # time.sleep(60)
     child.expect(pexpect.EOF)
 
-    logger.info('SSH command response => %s' % child.before)
+    logger.info('SSH command response(3) => %s' % child.before)
 
     live_metros_key = '%s:%d' % (metro.original_host, metro.original_port)
 
