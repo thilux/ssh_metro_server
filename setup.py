@@ -30,6 +30,7 @@ long_description = read('README.md')
 tests_require = [
     'flask',
     'pexpect',
+    'argparse',
 ]
 
 
