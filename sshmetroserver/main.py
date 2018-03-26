@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, make_response
 from sshmetroserver.model import ServerInfo, Metro
 from threading import Thread
 import platform
@@ -34,6 +34,18 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--port', type=int, default=9871, help='The port number in which the server is to be started on the'
                                                            ' local machine')
+
+
+@app.errorhandler(500)
+def http_500_handler(error):
+    """
+    Handles the HTTP 500 status returned by one of the methods in any situation. It returns back to the client, a
+    default JSON error structure.
+
+    :param error: The returned error code.
+    :return: JSON response to the client
+    """
+    return make_response(jsonify({'error': 'Failure processing request'}))
 
 
 def signal_handler(signum, frame):
@@ -98,7 +110,10 @@ def create_metro():
         port = util.get_free_port()
         _ports_in_use.append(port)
         metro.metro_port = port
-        create_ssh_tunnel_child_process(metro)
+        try:
+            create_ssh_tunnel_child_process(metro)
+        except IOError:
+            abort(500)
 
     return jsonify(metro.get_dict()), 201
 
@@ -120,7 +135,11 @@ def create_ssh_tunnel_child_process(metro):
     logger.debug('Command for starting metro SSH tunnel => %s' % ssh_command)
     child = pexpect.spawn(ssh_command)
     logger.info('SSH command response => %s' % child.before)
-    index = child.expect(['Are you sure you want to continue connecting', 'password:'], timeout=120)
+    index = child.expect(['Are you sure you want to continue connecting', 'password:', 'denied', 'refused', 'timeout'],
+                         timeout=120)
+    if index > 1:
+        # Either 'Permission Denied', 'Connection refused' or 'Connection timeout' happens
+        raise IOError('Error while establishing SSH connection to %s:%d' % (metro.original_host, metro.original_port))
     if index == 0:
         logger.info('SSH command response => %s' % child.before)
         child.sendline('yes')
