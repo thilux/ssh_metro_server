@@ -27,8 +27,8 @@ app = Flask(__name__)
 
 server_info = ServerInfo('localhost', '%s - %s' % (platform.system(), platform.platform()), '127.0.0.1')
 
-__ports_in_use = list()
-__live_metros = dict()
+_ports_in_use = list()
+_live_metros = dict()
 
 parser = argparse.ArgumentParser()
 
@@ -48,11 +48,11 @@ def signal_handler(signum, frame):
 
     logger.info('Metro Server received signal %s' % signum)
     logger.info('Terminating Metro Server')
-    if __live_metros:
-        for metro in __live_metros:
+    if _live_metros:
+        for metro in _live_metros:
             logger.debug('Terminating tunnel for server => %s' % metro)
-            __live_metros[metro]['pexpobj'].kill(9)
-            __live_metros[metro]['pexpobj'].close(force=True)
+            _live_metros[metro]['pexpobj'].kill(9)
+            _live_metros[metro]['pexpobj'].close(force=True)
     logger.info('Metro Server terminated!')
     sys.exit(0)
 
@@ -87,16 +87,16 @@ def create_metro():
 
     logger.debug('Request for metro => %s' % str(metro.get_dict()))
 
-    if '%s:%d' % (metro.original_host, metro.original_port) in __live_metros:
+    if '%s:%d' % (metro.original_host, metro.original_port) in _live_metros:
         logger.debug('Metro for host [%s] and port [%d] already exists' % (metro.original_host, metro.original_port))
         # reuse existing metro
-        existing_metro = __live_metros['%s:%d' % (metro.original_host, metro.original_port)]['metro']
+        existing_metro = _live_metros['%s:%d' % (metro.original_host, metro.original_port)]['metro']
         metro.metro_host = existing_metro.metro_host
         metro.metro_port = existing_metro.metro_port
     else:
         metro.metro_host = request.host.split(':')[0]
         port = util.get_free_port()
-        __ports_in_use.append(port)
+        _ports_in_use.append(port)
         metro.metro_port = port
         create_ssh_tunnel_child_process(metro)
 
@@ -135,12 +135,12 @@ def create_ssh_tunnel_child_process(metro):
 
     live_metros_key = '%s:%d' % (metro.original_host, metro.original_port)
 
-    if live_metros_key not in __live_metros:
+    if live_metros_key not in _live_metros:
         logger.debug('Creating live_metros entry from scratch')
-        __live_metros[live_metros_key] = dict()
-        __live_metros[live_metros_key]['metro'] = metro
+        _live_metros[live_metros_key] = dict()
+        _live_metros[live_metros_key]['metro'] = metro
 
-    __live_metros[live_metros_key]['pexpobj'] = child
+    _live_metros[live_metros_key]['pexpobj'] = child
 
 
 def keep_live_metros_alive():
@@ -154,8 +154,8 @@ def keep_live_metros_alive():
     """
 
     while True:
-        for live_metros_key in __live_metros:
-            metro = __live_metros[live_metros_key]['metro']
+        for live_metros_key in _live_metros:
+            metro = _live_metros[live_metros_key]['metro']
             logger.debug('Checking if tunnel for host [%s] and port [%d] is alive' % (metro.original_host,
                                                                                       metro.original_port))
             if not util.is_server_alive(metro.metro_host, metro.metro_port):
