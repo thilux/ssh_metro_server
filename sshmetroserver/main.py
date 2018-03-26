@@ -145,7 +145,7 @@ def create_ssh_tunnel_child_process(metro):
 
 def keep_live_metros_alive():
     """
-    This method is supposed to be run on a separate thread. It performs an evalutation throughout the list of metros
+    This method is supposed to be run on a separate thread. It performs an evaluation throughout the list of metros
     stored in the live_metros dictionary to preemptively restart those tunnels that are no longer accessible. Tunnels
     can die by themselves due to policies configured for SSH in the target server, so this method is a way to make sure
     a metro request is always kept while the metro server is running.
