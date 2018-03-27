@@ -139,10 +139,10 @@ def create_ssh_tunnel_child_process(metro):
     logger.debug('Command for starting metro SSH tunnel => %s' % ssh_command)
     child = pexpect.spawn(ssh_command)
     logger.info('SSH command response => %s' % child.before)
-    index = child.expect(['Are you sure you want to continue connecting', 'password:', 'denied', 'refused', 'timeout'],
-                         timeout=120)
+    index = child.expect(['Are you sure you want to continue connecting', 'password:', 'denied', 'refused', 'timeout',
+                          pexpect.EOF])
     logger.debug('Expect index for SSH command is %d' % index)
-    if index > 1:
+    if index not in range(2, 5):
         # Either 'Permission Denied', 'Connection refused' or 'Connection timeout' happens
         raise IOError('Error while establishing SSH connection to %s:%d' % (metro.original_host, metro.original_port))
     if index == 0:
@@ -150,10 +150,13 @@ def create_ssh_tunnel_child_process(metro):
         child.sendline('yes')
         logger.info('SSH command response(2) => %s' % child.before)
         child.expect('password:')
-    time.sleep(0.1)
-    child.sendline(metro.password)
-    # time.sleep(60)
-    child.expect(pexpect.EOF)
+    if index != 5:
+        time.sleep(0.1)
+        child.sendline(metro.password)
+        # time.sleep(60)
+        child.expect(pexpect.EOF)
+    else:
+        logger.debug('No password was requested!')
 
     logger.info('SSH command response(3) => %s' % child.before)
 
