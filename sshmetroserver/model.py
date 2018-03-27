@@ -22,10 +22,10 @@ class JsonTemplate(object):
             instance_init_vals = ''
             for field in (cls.mandatory_fields + cls.optional_fields):
                 if field in json_dict:
-                    if type(json_dict[field]) in (str, bytes):
-                        instance_init_vals += '%s="%s",' % (field, eval('json_dict["%s"]' % field))
-                    else:
+                    if type(json_dict[field]) in (int, float):
                         instance_init_vals += '%s=%s,' % (field, eval('json_dict["%s"]' % field))
+                    else:
+                        instance_init_vals += '%s="%s",' % (field, eval('json_dict["%s"]' % field))
 
             instance_init_vals = ''.join(instance_init_vals[:-1])
             instance_model = 'cls(%s)' % instance_init_vals
